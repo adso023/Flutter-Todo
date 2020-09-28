@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/screens/authScreen.dart';
+import 'package:flutter_todo/src/screens/home.dart';
 import 'package:provider/provider.dart';
 import 'auth/auth.dart';
 
@@ -28,13 +29,9 @@ class Root extends StatelessWidget {
           builder: (context, auth, _) =>
               auth.authStatus == AuthLoading.Uninitialized
                   ? RootScreen()
-                  : auth.authStatus == AuthLoading.Unauthenticated
-                      ? AuthScreen()
-                      : auth.authStatus == AuthLoading.Authenticated
-                          ? Container()
-                          : Container(
-                              child: Text('Unknown State ${auth.authStatus}'),
-                            )),
+                  : auth.authStatus == AuthLoading.Authenticated
+                      ? Home()
+                      : AuthScreen()),
     );
   }
 }

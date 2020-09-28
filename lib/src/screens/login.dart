@@ -1,3 +1,4 @@
+import 'package:crypt/crypt.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/auth/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,7 @@ class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController _usernameController;
   TextEditingController _passwordController;
-  final _style = GoogleFonts.bangers(letterSpacing: 1.2);
+  final _style = GoogleFonts.peddana(letterSpacing: 1.2);
 
   @override
   void initState() {
@@ -19,6 +20,13 @@ class _LoginState extends State<Login> {
 
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -82,17 +90,50 @@ class _LoginState extends State<Login> {
               : Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: RaisedButton(
-                      color: Colors.deepPurple,
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          FocusScope.of(context).unfocus();
-                        }
-                      },
+                    color: Colors.deepPurple,
+                    onPressed: () async {
+                      if (_formKey.currentState.validate()) {
+                        FocusScope.of(context).unfocus();
+                        String email = '${_usernameController.text}@todo.com';
+                        String hashed =
+                            Crypt.sha256(_passwordController.text).hash;
+
+                        bool logged = await authProv
+                            .loginWithEmailandPassword(email, hashed);
+
+                        return (!logged)
+                            ? showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) => AlertDialog(
+                                      title: Text('Login Error'),
+                                      content: Text(
+                                          'Could not sign in. User not found or invalid credentials'),
+                                      actions: [
+                                        FlatButton(
+                                          child: Text('Close'),
+                                          onPressed: () {
+                                            _usernameController.clear();
+                                            _passwordController.clear();
+
+                                            if (Navigator.canPop(context))
+                                              Navigator.pop(context);
+                                            else
+                                              print(
+                                                  'Error in Navigator.pop(context)');
+                                          },
+                                        )
+                                      ],
+                                    ))
+                            : null;
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
                       child: Text('Login',
-                          style: GoogleFonts.bangers(
-                              color: Colors.white,
-                              letterSpacing: 1.2,
-                              fontSize: 15.0))),
+                          style: _style.merge(TextStyle(
+                              fontSize: 20.0, color: Colors.white))),
+                    )),
                 ),
         ],
       )),
