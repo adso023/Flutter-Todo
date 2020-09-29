@@ -9,10 +9,23 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   int _currentView = 0;
-  final _authViews = <Widget>[
-    Login(),
-    Register(),
-  ];
+  List<Widget> _authViews;
+
+  void _sendLogin() => setState(() {
+        _currentView = 0;
+      });
+  void _sendRegister() => setState(() {
+        _currentView = 1;
+      });
+
+  @override
+  void initState() {
+    super.initState();
+    _authViews = <Widget>[
+      Login(registerCallback: _sendRegister),
+      Register(loginCallback: _sendLogin),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

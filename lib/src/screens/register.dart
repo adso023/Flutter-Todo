@@ -1,4 +1,3 @@
-import 'package:crypt/crypt.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/auth/auth.dart';
 import 'package:flutter_todo/src/helpers/validator.dart';
@@ -6,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class Register extends StatefulWidget {
+  final loginCallback;
+  Register({this.loginCallback});
   @override
   _RegisterState createState() => _RegisterState();
 }
@@ -24,6 +25,7 @@ class _RegisterState extends State<Register> {
   bool _mixCase;
   bool _confirmPass;
   bool _usernameCheck;
+  bool _reveal;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _RegisterState extends State<Register> {
     _mixCase = false;
     _confirmPass = false;
     _usernameCheck = false;
+    _reveal = false;
   }
 
   @override
@@ -48,7 +51,8 @@ class _RegisterState extends State<Register> {
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
-    _minLength = _inclNum = _inclSymb = _mixCase = _confirmPass = null;
+    _minLength = _inclNum =
+        _inclSymb = _mixCase = _confirmPass = _usernameCheck = _reveal = null;
     super.dispose();
   }
 
@@ -100,11 +104,6 @@ class _RegisterState extends State<Register> {
               controller: _usernameController,
               style: _style,
               decoration: _decoration.copyWith(hintText: 'Username'),
-              validator: (value) {
-                if (value.isEmpty || value.length < 6)
-                  return "Field is either empty or is less than 6 characters";
-                return null;
-              },
               onChanged: _usernameValCheck,
             ),
           ),
@@ -113,16 +112,18 @@ class _RegisterState extends State<Register> {
             child: TextFormField(
               controller: _passwordController,
               style: _style,
-              obscureText: true,
+              obscureText: !_reveal,
               obscuringCharacter: '*',
-              decoration: _decoration.copyWith(hintText: 'Password'),
-              validator: (value) {
-                if (value.isEmpty || checkMinLength(value))
-                  return "Field doesn't match password field";
-                else if (_minLength && _inclNum && _inclSymb && _mixCase)
-                  return "Integrity issues check below for 'red info icon'";
-                return null;
-              },
+              decoration: _decoration.copyWith(
+                  hintText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: _reveal
+                        ? Icon(Icons.lock_open)
+                        : Icon(Icons.lock_outline),
+                    onPressed: () => setState(() {
+                      _reveal = !_reveal;
+                    }),
+                  )),
               onChanged: _passwordOnChange,
             ),
           ),
@@ -134,17 +135,22 @@ class _RegisterState extends State<Register> {
               obscureText: true,
               obscuringCharacter: '*',
               decoration: _decoration.copyWith(hintText: 'Confirm Password'),
-              validator: (value) {
-                if (value.isEmpty || checkMinLength(value))
-                  return "Field is either empty or is less than 8 characters";
-                else if (!_confirmPass) return "Passwords don't match";
-                return null;
-              },
               onChanged: _confirmCheck,
             ),
           ),
           _buildIntegrityChecker(context),
           _buildSubmitButton(authProv),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: SizedBox(
+                child: GestureDetector(
+              onTap: widget.loginCallback,
+              child: Text('Have an account? Login',
+                  style: TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline)),
+            )),
+          ),
         ],
       )),
     );
@@ -175,7 +181,9 @@ class _RegisterState extends State<Register> {
                       _usernameCheck)) {
                 FocusScope.of(context).unfocus();
                 String email = '${_usernameController.text}@todo.com';
-                String hashed = Crypt.sha256(_passwordController.text).hash;
+                // String hashed = Crypt.sha256(_passwordController.text).hash;
+                // print('Hashed in register $hashed');
+                String hashed = _passwordController.text;
 
                 bool logged =
                     await authProv.registerWithEmailandPassword(email, hashed);

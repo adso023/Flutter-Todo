@@ -1,10 +1,11 @@
-import 'package:crypt/crypt.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/auth/auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 class Login extends StatefulWidget {
+  final registerCallback;
+  Login({this.registerCallback});
   createState() => _LoginState();
 }
 
@@ -90,51 +91,64 @@ class _LoginState extends State<Login> {
               : Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: RaisedButton(
-                    color: Colors.deepPurple,
-                    onPressed: () async {
-                      if (_formKey.currentState.validate()) {
-                        FocusScope.of(context).unfocus();
-                        String email = '${_usernameController.text}@todo.com';
-                        String hashed =
-                            Crypt.sha256(_passwordController.text).hash;
+                      color: Colors.deepPurple,
+                      onPressed: () async {
+                        if (_formKey.currentState.validate()) {
+                          FocusScope.of(context).unfocus();
+                          String email = '${_usernameController.text}@todo.com';
+                          // String hashed =
+                          //     Crypt.sha256(_passwordController.text).hash;
+                          // print('Hashed in register $hashed');
+                          String hashed = _passwordController.text;
 
-                        bool logged = await authProv
-                            .loginWithEmailandPassword(email, hashed);
+                          bool logged = await authProv
+                              .loginWithEmailandPassword(email, hashed);
 
-                        return (!logged)
-                            ? showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) => AlertDialog(
-                                      title: Text('Login Error'),
-                                      content: Text(
-                                          'Could not sign in. User not found or invalid credentials'),
-                                      actions: [
-                                        FlatButton(
-                                          child: Text('Close'),
-                                          onPressed: () {
-                                            _usernameController.clear();
-                                            _passwordController.clear();
+                          return (!logged)
+                              ? showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => AlertDialog(
+                                        title: Text('Login Error'),
+                                        content: Text(
+                                            'Could not sign in. User not found or invalid credentials'),
+                                        actions: [
+                                          FlatButton(
+                                            child: Text('Close'),
+                                            onPressed: () {
+                                              _usernameController.clear();
+                                              _passwordController.clear();
 
-                                            if (Navigator.canPop(context))
-                                              Navigator.pop(context);
-                                            else
-                                              print(
-                                                  'Error in Navigator.pop(context)');
-                                          },
-                                        )
-                                      ],
-                                    ))
-                            : null;
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Text('Login',
-                          style: _style.merge(TextStyle(
-                              fontSize: 20.0, color: Colors.white))),
-                    )),
+                                              if (Navigator.canPop(context))
+                                                Navigator.pop(context);
+                                              else
+                                                print(
+                                                    'Error in Navigator.pop(context)');
+                                            },
+                                          )
+                                        ],
+                                      ))
+                              : null;
+                        }
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Text('Login',
+                            style: _style.merge(TextStyle(
+                                fontSize: 20.0, color: Colors.white))),
+                      )),
                 ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: SizedBox(
+                child: GestureDetector(
+              onTap: widget.registerCallback,
+              child: Text('Register for an account',
+                  style: TextStyle(
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline)),
+            )),
+          ),
         ],
       )),
     );
