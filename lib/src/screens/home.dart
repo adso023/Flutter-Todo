@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/auth/auth.dart';
+import 'package:flutter_todo/src/models/UserModel.dart';
 import 'package:provider/provider.dart';
 
 class Home extends StatefulWidget {
@@ -10,12 +11,23 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
+    final userModel = Provider.of<Auth>(context).user;
     return Scaffold(
-        body: FlatButton(
-      child: Text('Sign out'),
-      onPressed: () async {
-        await Provider.of<Auth>(context, listen: false).signOut();
-      },
-    ));
+      appBar: AppBar(
+        title: Text('Today'),
+      ),
+      body: StreamBuilder<UserModel>(
+        stream: userModel,
+        builder: (context, model) {
+          if (model.hasData) {
+            return Container(child: Text('${model.data.email}'));
+          } else if (model.hasError) {
+            return Center(child: Text('Error: ${model.error}'));
+          }
+
+          return Center(child: CircularProgressIndicator());
+        },
+      ),
+    );
   }
 }
