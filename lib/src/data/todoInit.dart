@@ -5,19 +5,19 @@ class TodoInitData {
   TodoModel _todo;
   TodoInitData({String uid}) {
     _todo = TodoModel(
-        belongsTo: uid,
-        groupsTo: 'Welcome Project',
-        comments: <String>["First Todo Comment", "Write comments here"],
-        tags: <String>['Initial', 'Testing'],
+        owner: uid,
+        completed: false,
         todo: 'First Todo');
   }
 
   Future<bool> _writeInitialData() async {
+    print('Writing inside private');
     bool result = await Firestore().addTodo(_todo);
     return result;
   }
 
   Future<bool> writeInitial() async {
+    print('Writing');
     return await _writeInitialData();
   }
 }
