@@ -1,7 +1,7 @@
 import 'package:flutter_todo/src/auth/firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/auth/auth.dart';
-import 'package:flutter_todo/src/auth/firestore.dart';
+import 'package:flutter_todo/src/data/todoInit.dart';
 import 'package:flutter_todo/src/models/TodoModel.dart';
 import 'package:flutter_todo/src/models/UserModel.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,33 +30,29 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final userModel = Provider.of<Auth>(context).user;
-    return Scaffold(
-      drawerEnableOpenDragGesture: true,
-      endDrawerEnableOpenDragGesture: true,
-      drawer: Drawer(),
-      endDrawer: Drawer(),
-      body: StreamBuilder<UserModel>(
-        stream: userModel,
-        builder: (context, model) {
-          if (model.hasData) {
-            // return Container(child: Text('${model.data.email}'));
-            return _buildBody(context, model.data.email, model.data.uid);
-          } else if (model.hasError) {
-            return Center(child: Text('Error: ${model.error}'));
-          }
-
-          return Center(child: CircularProgressIndicator());
-        },
+    return StreamBuilder<UserModel>(
+      stream: userModel,
+      builder: (context, model) => Scaffold(
+        drawerEnableOpenDragGesture: true,
+        endDrawerEnableOpenDragGesture: true,
+        drawer: Drawer(),
+        endDrawer: Drawer(),
+        body: (model.hasData)
+            ? _buildBody(context, model.data.email, model.data.uid)
+            : (model.hasError)
+                ? Container(child: Text('Error'))
+                : CircularProgressIndicator(),
+        floatingActionButton: Container(
+          margin: EdgeInsets.only(bottom: 5.0),
+          child: FloatingActionButton(
+              tooltip: 'Add new todo',
+              onPressed: () async =>
+                  await TodoInitData(uid: model.data.uid).writeInitial(),
+              child: Icon(Icons.add),
+              backgroundColor: Colors.blueGrey[900]),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
-      floatingActionButton: Container(
-        margin: EdgeInsets.only(bottom: 5.0),
-        child: FloatingActionButton(
-            tooltip: 'Add new todo',
-            onPressed: null,
-            child: Icon(Icons.add),
-            backgroundColor: Colors.blueGrey[900]),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -122,14 +118,18 @@ class _HomeState extends State<Home> {
                       topLeft: Radius.circular(25.0),
                       topRight: Radius.circular(25.0)),
                   child: Container(
+                    width: MediaQuery.of(context).size.width,
                     color: Colors.white,
                     child: StreamBuilder<List<TodoModel>>(
                         stream: Firestore().overviewTodos(uid),
                         builder: (context, data) {
-                          if (data.hasData) {
-                            return Container(
-                              child: Text(data.data[0].todo),
-                            );
+                          if (data.hasData && data.data != null) {
+                            return data.data.length == 0
+                                ? Container(
+                                    child: Text('No todos'),
+                                    padding: const EdgeInsets.all(20.0),
+                                  )
+                                : _buildTodoList(data.data);
                           } else if (data.hasError) {
                             return Container();
                           }
@@ -141,5 +141,29 @@ class _HomeState extends State<Home> {
             ],
           )),
         ],
+      );
+
+  Widget _buildTodoList(List<TodoModel> todos) => ListView.separated(
+        physics: BouncingScrollPhysics(),
+        padding: EdgeInsets.all(8.0),
+        itemCount: todos.length,
+        itemBuilder: (context, i) {
+          final todo = todos[i];
+          return Container(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                    icon: Icon(Icons.panorama_fish_eye), onPressed: () {}),
+                Text('${todo.todo}')
+              ],
+            ),
+          );
+        },
+        separatorBuilder: (context, i) => Divider(
+          thickness: 1.0,
+          indent: 2.0,
+        ),
       );
 }
