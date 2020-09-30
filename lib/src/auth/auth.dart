@@ -54,9 +54,8 @@ class Auth extends ChangeNotifier {
     try {
       _authLoading = AuthLoading.Registering;
       notifyListeners();
-      await _auth
-          .createUserWithEmailAndPassword(email: email, password: password)
-          .then((value) => TodoInitData(uid: value.user.uid).writeInitial());
+      await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
       return true;
     } catch (e) {
       print('Error during registration: ${e.toString()}');
