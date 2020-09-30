@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_todo/src/data/todoInit.dart';
 import 'package:flutter_todo/src/models/UserModel.dart';
 
 enum AuthLoading {
@@ -53,8 +54,9 @@ class Auth extends ChangeNotifier {
     try {
       _authLoading = AuthLoading.Registering;
       notifyListeners();
-      await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      await _auth
+          .createUserWithEmailAndPassword(email: email, password: password)
+          .then((value) => TodoInitData(uid: value.user.uid).writeInitial());
       return true;
     } catch (e) {
       print('Error during registration: ${e.toString()}');
@@ -64,7 +66,10 @@ class Auth extends ChangeNotifier {
     }
   }
 
-  Future<bool> loginWithEmailandPassword(String email, String password) async {
+  Future<bool> loginWithEmailandPassword(
+    String email,
+    String password,
+  ) async {
     try {
       _authLoading = AuthLoading.Authenticating;
       notifyListeners();
