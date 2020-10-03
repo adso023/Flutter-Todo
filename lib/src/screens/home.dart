@@ -1,9 +1,9 @@
 import 'package:flutter_todo/src/auth/firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_todo/src/auth/auth.dart';
-import 'package:flutter_todo/src/data/todoInit.dart';
 import 'package:flutter_todo/src/models/TodoModel.dart';
 import 'package:flutter_todo/src/models/UserModel.dart';
+import 'package:flutter_todo/src/screens/newTodo.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -22,9 +22,13 @@ class Category {
 enum CategoryType { Design, Learning, Meeting }
 
 class _HomeState extends State<Home> {
+  var _scaffoldState = GlobalKey<ScaffoldState>();
+  var _showFab;
+
   @override
   void initState() {
     super.initState();
+    _showFab = true;
   }
 
   @override
@@ -33,6 +37,7 @@ class _HomeState extends State<Home> {
     return StreamBuilder<UserModel>(
       stream: userModel,
       builder: (context, model) => Scaffold(
+        key: _scaffoldState,
         drawerEnableOpenDragGesture: true,
         endDrawerEnableOpenDragGesture: true,
         drawer: Drawer(),
@@ -42,15 +47,26 @@ class _HomeState extends State<Home> {
             : (model.hasError)
                 ? Container(child: Text('Error'))
                 : CircularProgressIndicator(),
-        floatingActionButton: Container(
-          margin: EdgeInsets.only(bottom: 5.0),
-          child: FloatingActionButton(
-              tooltip: 'Add new todo',
-              onPressed: () async =>
-                  await TodoInitData(uid: model.data.uid).writeInitial(),
-              child: Icon(Icons.add),
-              backgroundColor: Colors.blueGrey[900]),
-        ),
+        floatingActionButton: (_showFab)
+            ? Container(
+                margin: EdgeInsets.only(bottom: 5.0),
+                child: FloatingActionButton(
+                    tooltip: 'Add new todo',
+                    onPressed: () {
+                      var bottomSheetController = _scaffoldState.currentState
+                          .showBottomSheet((context) => TodoBottomSheet());
+                      setState(() {
+                        _showFab = false;
+                      });
+
+                      bottomSheetController.closed.then((value) => setState(() {
+                            _showFab = true;
+                          }));
+                    },
+                    child: Icon(Icons.add),
+                    backgroundColor: Colors.blueGrey[900]),
+              )
+            : Container(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       ),
     );
