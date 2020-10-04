@@ -54,7 +54,9 @@ class _HomeState extends State<Home> {
                     tooltip: 'Add new todo',
                     onPressed: () {
                       var bottomSheetController = _scaffoldState.currentState
-                          .showBottomSheet((context) => TodoBottomSheet());
+                          .showBottomSheet((context) => TodoBottomSheet(
+                                owner: model.data.uid,
+                              ));
                       setState(() {
                         _showFab = false;
                       });
